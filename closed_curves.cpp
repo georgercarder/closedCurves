@@ -9,8 +9,6 @@
 //using phmap::flat_hash_map;
 // on the server std unordered_map is actually faster!! 4s vs 10s on benchmark!
 
-// call this algorithm "cmodb"
-
 using namespace std;
 
 int min(const int a, const int b) 
@@ -449,9 +447,9 @@ Loop canonicalLoop(Loop loop)
 {
     Loop ret;
     int firstEdgeIdx = getFirstEdgeIdx(loop);
-    for (int j = 0; j < loop.size(); ++j)
+    for (int i = 0; i < loop.size(); ++i)
     {
-        ret.push_back(loop.at((firstEdgeIdx + j) % loop.size())); 
+        ret.push_back(loop.at((firstEdgeIdx + i) % loop.size())); 
     }
     return ret;
 }

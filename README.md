@@ -1,22 +1,32 @@
 # closedCurves
 
 
-Minimal canonical representation of closed curves in pixelated space.
+##Minimal canonical representation of closed curves in pixelated space.
 
 
-To make run
+###To make run
 
 `make`
 
+this creates two executables `closed_curves` and `closed_curves_parallel`
 
-To demo run
+
+###To demo run
 
 `./closed_curves demo`
 
+or
 
-To use run 
+`./closed_curves_parallel demo`
+
+
+###To use run 
 
 `./closed_curves <PARAMS>`
+
+or
+
+`./closed_curves_parallel <PARAMS>`
 
 
 where `<PARAMS>` is of the form of the `debug_data` within the `debug_data.h`. AKA an unorderd list of ordered (COLORTYPE COORDINATE) pairs.

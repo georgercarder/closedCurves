@@ -1,3 +1,5 @@
+// copyleft George R. Carder 2026, GNU Affero V3 
+
 #include <stdio.h>
 #include <assert.h>
 #include <thread>

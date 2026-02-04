@@ -1,17 +1,17 @@
 # closedCurves
 
 
-##Minimal canonical representation of closed curves in pixelated space.
+## Minimal canonical representation of closed curves in pixelated space.
 
 
-###To make run
+### To make run
 
 `make`
 
 this creates two executables `closed_curves` and `closed_curves_parallel`
 
 
-###To demo run
+### To demo run
 
 `./closed_curves demo`
 
@@ -20,7 +20,7 @@ or
 `./closed_curves_parallel demo`
 
 
-###To use run 
+### To use run 
 
 `./closed_curves <PARAMS>`
 

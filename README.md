@@ -1,7 +1,7 @@
 # closedCurves
 
 
-## Minimal canonical representation of closed curves in pixelated space.
+## Minimal canonical representation of closed curves bounding contiguously classed regions in pixelated space.
 
 
 ### To make run

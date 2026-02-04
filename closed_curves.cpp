@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <thread>
 
 #include <bits/stdc++.h>
 
@@ -321,9 +322,9 @@ Edge getLeftEdge(const Edge edge)
     return Coordinates({coordinates: rc, sCoordinates: coordinatesToString(rc)});
 }
 
-unordered_map<string, Edge> getOrientedEdges(unordered_map<string, bool> coords)
-{
+unordered_map<string, Edge> getOrientedEdges(unordered_map<string, bool> coords) {
     unordered_map<string, Edge> ret;
+
     for (auto x : coords) 
     {
         string coord = x.first;
@@ -339,22 +340,6 @@ unordered_map<string, Edge> getOrientedEdges(unordered_map<string, bool> coords)
                 ret[edge.sCoordinates] = edge;
             }
         }
-    }
-    return ret;
-}
-
-unordered_map<string, unordered_map<string, Edge>> getOrientedEdges(unordered_map<string, unordered_map<string, bool>> colorToCoords)
-{
-    unordered_map<string, unordered_map<string, Edge>> ret;
-    
-    for (auto x : colorToCoords) 
-    {
-        string color = x.first; 
-        unordered_map<string, bool> coords = x.second;
-
-        unordered_map<string, Edge> oee = getOrientedEdges(coords);
-
-        ret[color] = oee;
     }
     return ret;
 }
@@ -430,19 +415,6 @@ vector<Loop> getLoops(unordered_map<string, Edge> orientedEdgeExistence)
     return ret;
 }
 
-unordered_map<string, vector<Loop>> getLoops(unordered_map<string, unordered_map<string, Edge>> colorToOrientedEdgeExistence)
-{
-    unordered_map<string, vector<Loop>> ret;   
-    for (auto x : colorToOrientedEdgeExistence) 
-    {
-        string color = x.first;
-        unordered_map<string, Edge> orientedEdgeExistence = x.second;
-
-        ret[color] = getLoops(orientedEdgeExistence);
-    }
-    return ret;
-}
-
 Loop canonicalLoop(Loop loop)
 {
     Loop ret;
@@ -454,34 +426,30 @@ Loop canonicalLoop(Loop loop)
     return ret;
 }
 
-vector<pair<string, string>> getPaths(unordered_map<string, vector<Loop>> colorToLoops)
+vector<pair<string, string>> getPaths(string color, vector<Loop> loops)
 {
     vector<pair<string, string>> ret;
-    for (auto x : colorToLoops)
-    {
-        string color = x.first;
-        string pathScratch = "";
-        vector<Loop> loops = x.second;
-        for (int i = 0; i < loops.size(); ++i)
-        {
-            loops.at(i) = canonicalLoop(loops.at(i));
-        }
-        sort(loops.begin(), loops.end(), compareFirstRawCoordinates);
-        for (int loopIdx = 0; loopIdx < loops.size(); ++loopIdx) 
-        {
-            Loop loop = loops.at(loopIdx);
-            adjustForOrientation(loop);
-            string sPath = buildPathString(loop); 
-            pathScratch += sPath;
-            if (loopIdx == loops.size()-1)
-            {
-                pair<string, string> p;
-                p.first = color;
-                p.second = pathScratch;
-                ret.push_back(p);
+    string pathScratch = "";
 
-                pathScratch = "";
-            }
+    for (int i = 0; i < loops.size(); ++i)
+    {
+        loops.at(i) = canonicalLoop(loops.at(i));
+    }
+    sort(loops.begin(), loops.end(), compareFirstRawCoordinates);
+    for (int loopIdx = 0; loopIdx < loops.size(); ++loopIdx) 
+    {
+        Loop loop = loops.at(loopIdx);
+        adjustForOrientation(loop);
+        string sPath = buildPathString(loop); 
+        pathScratch += sPath;
+        if (loopIdx == loops.size()-1)
+        {
+            pair<string, string> p;
+            p.first = color;
+            p.second = pathScratch;
+            ret.push_back(p);
+
+            pathScratch = "";
         }
     }
     return ret;
@@ -530,6 +498,13 @@ vector<vector<string>> getVirtualArgs()
     return ret;
 }
 
+vector<pair<string, string>> getPathsFromCoords(string color, unordered_map<string, bool> coords)
+{
+    unordered_map<string, Edge> oee = getOrientedEdges(coords);
+    vector<Loop> loops = getLoops(oee);
+    return getPaths(color, loops);
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -563,9 +538,15 @@ int main(int argc, char* argv[])
     }
 
     unordered_map<string, unordered_map<string, bool>> colorToCoords = getColorClassToCoords(keys, values);
-    unordered_map<string, unordered_map<string, Edge>> colorToOrientedEdgeExistence = getOrientedEdges(colorToCoords);
-    unordered_map<string, vector<Loop>> colorToLoops = getLoops(colorToOrientedEdgeExistence);
-    vector<pair<string, string>> paths = getPaths(colorToLoops);
+    vector<pair<string, string>> paths;
+    for (auto x : colorToCoords) { // can just be independent "thread" for each color
+        string color = x.first;
+        unordered_map<string, bool> coords = x.second;
+   
+        vector<pair<string, string>> ps = getPathsFromCoords(color, coords); 
+        // concat
+        paths.insert(paths.end(), ps.begin(), ps.end());
+    }
     sort(paths.begin(), paths.end(), comparePathsFirstRawCoordinates);
     for (auto p : paths) {
         printf("%s\n", p.first.c_str()); 

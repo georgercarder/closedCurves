@@ -19,7 +19,7 @@ To use run
 `./closed_curves <PARAMS>`
 
 
-where <PARAMS> is of the form of the `debug_data` within the `debug_data.h`. AKA an unorderd list of ordered (COLORTYPE COORDINATE) pairs.
+where `<PARAMS>` is of the form of the `debug_data` within the `debug_data.h`. AKA an unorderd list of ordered (COLORTYPE COORDINATE) pairs.
 
 Not audited, but WELL used. Still, use at your own risk.
 

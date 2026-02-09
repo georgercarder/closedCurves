@@ -10,7 +10,7 @@
 
 using namespace std;
 
-void tGetPathsFromCoords(string color, unique_ptr<unordered_map<string, bool>> ptrCoords, vector<pair<string, string>>* ret) 
+void tGetPathsFromCoords(string color, unique_ptr<unordered_map<string, bool>> ptrCoords, shared_ptr<vector<pair<string, string>>> ret) 
 {
     //printf("%s\n", color.c_str());
     unordered_map<string, bool> coords = *(ptrCoords.get());
@@ -54,16 +54,17 @@ int main(int argc, char* argv[])
     vector<pair<string, string>> paths;
     
     int maxThreads = thread::hardware_concurrency();
-    vector<vector<pair<string, string>>*> subPaths;
+    vector<shared_ptr<vector<pair<string, string>>>> subPaths;
     vector<thread> threads;
     for (auto x : colorToCoords) { // can just be independent "thread" for each color
         string color = x.first;
         unordered_map<string, bool> coords = x.second;
    
-        vector<pair<string, string>> *ps = new vector<pair<string, string>>();
-        subPaths.push_back(ps);
+        vector<pair<string, string>> ps;
+        shared_ptr<vector<pair<string, string>>> sps = make_shared<vector<pair<string, string>>>(ps);
+        subPaths.push_back(sps);
 
-        thread t(tGetPathsFromCoords, ref(color), make_unique<unordered_map<string, bool>>(coords), ps);
+        thread t(tGetPathsFromCoords, ref(color), make_unique<unordered_map<string, bool>>(coords), sps);
         threads.push_back(move(t));
 
         if (threads.size() > maxThreads-1) {
@@ -80,14 +81,10 @@ int main(int argc, char* argv[])
         threads.pop_back();
     }
     while (subPaths.size() > 0) {
-        vector<pair<string, string>>* ptr = subPaths.back(); 
+        shared_ptr<vector<pair<string, string>>> sps = subPaths.back(); 
         subPaths.pop_back();
 
-        vector<pair<string, string>> ps = *ptr;
-
-        paths.insert(paths.end(), ps.begin(), ps.end());
-
-        delete ptr;
+        paths.insert(paths.end(), sps->begin(), sps->end());
     }
 
     sort(paths.begin(), paths.end(), comparePathsFirstRawCoordinates);

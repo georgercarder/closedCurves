@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
         threads.push_back(move(t));
     }
     while (threads.size() > 0) {
-        threads.at(threads.size() - 1).join();
+        threads.back().join();
         threads.pop_back();
     }
 

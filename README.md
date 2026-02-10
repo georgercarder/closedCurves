@@ -4,6 +4,9 @@
 ## Minimal canonical representation of closed curves bounding contiguously classed regions in pixelated space.
 
 
+The minimal canonical representation will be "closed curves" not "simple closed curves". As "simple closed curves" are non-self-intersecting, "closed curves" may be self-intersecting, an interesting artifact of this minimal canonical representation.
+
+
 ### To make run
 
 `make`

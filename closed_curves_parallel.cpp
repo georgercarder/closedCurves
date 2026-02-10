@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <thread>
+#include <mutex>
 
 #include <bits/stdc++.h>
 
@@ -10,12 +11,42 @@
 
 using namespace std;
 
-void tGetPathsFromCoords(string color, unique_ptr<unordered_map<string, bool>> ptrCoords, shared_ptr<vector<pair<string, string>>> ret) 
+struct DataFeed {
+    mutex mut;
+    unordered_map<string, unordered_map<string, bool>> colorToCoords;
+};
+
+struct ReturnData {
+    mutex mut;
+    vector<pair<string, string>> paths;
+};
+
+void tGetPathsFromCoordsLoop(shared_ptr<DataFeed> sDataFeed, shared_ptr<ReturnData> sReturnData)
 {
-    //printf("%s\n", color.c_str());
-    unordered_map<string, bool> coords = *(ptrCoords.get());
-    vector<pair<string, string>> ps = getPathsFromCoords(color, coords);
-    ret->insert(ret->end(), ps.begin(), ps.end());
+    while (1) 
+    {
+        sDataFeed->mut.lock(); 
+        if (sDataFeed->colorToCoords.size() < 1) {
+            sDataFeed->mut.unlock(); 
+            break;
+        }
+
+        string color;
+        unordered_map<string, bool> coords;
+        for (auto x : sDataFeed->colorToCoords) 
+        {
+            color = x.first; 
+            coords = x.second;
+            break;
+        }
+        sDataFeed->colorToCoords.erase(color);
+        sDataFeed->mut.unlock();
+
+        vector<pair<string, string>> ps = getPathsFromCoords(color, coords);
+        sReturnData->mut.lock();
+        sReturnData->paths.insert(sReturnData->paths.end(), ps.begin(), ps.end());
+        sReturnData->mut.unlock();
+    }
 }
 
 int main(int argc, char* argv[])
@@ -51,42 +82,31 @@ int main(int argc, char* argv[])
     }
 
     unordered_map<string, unordered_map<string, bool>> colorToCoords = getColorClassToCoords(keys, values);
-    vector<pair<string, string>> paths;
-    
+
     int maxThreads = thread::hardware_concurrency();
-    vector<shared_ptr<vector<pair<string, string>>>> subPaths;
+    if (maxThreads < 2) {
+        printf("not enough concurrency\n");
+        return 1;
+    }
+    --maxThreads;
+
+    shared_ptr<DataFeed> sDataFeed = make_shared<DataFeed>();
+    sDataFeed->colorToCoords = colorToCoords;
+
+    shared_ptr<ReturnData> sReturnData = make_shared<ReturnData>();
+
     vector<thread> threads;
-    for (auto x : colorToCoords) { // can just be independent "thread" for each color
-        string color = x.first;
-        unordered_map<string, bool> coords = x.second;
-   
-        vector<pair<string, string>> ps;
-        shared_ptr<vector<pair<string, string>>> sps = make_shared<vector<pair<string, string>>>(ps);
-        subPaths.push_back(sps);
 
-        thread t(tGetPathsFromCoords, ref(color), make_unique<unordered_map<string, bool>>(coords), sps);
+    for (int i = 0; i < maxThreads; ++i) {
+        thread t(tGetPathsFromCoordsLoop, sDataFeed, sReturnData); 
         threads.push_back(move(t));
-
-        if (threads.size() > maxThreads-1) {
-            while (threads.size() > 0) {
-                //printf("%d\n", threads.size());
-                threads.at(threads.size() - 1).join();
-                threads.pop_back();
-            }
-        }
     }
     while (threads.size() > 0) {
-        //printf("%d\n", threads.size());
         threads.at(threads.size() - 1).join();
         threads.pop_back();
     }
-    while (subPaths.size() > 0) {
-        shared_ptr<vector<pair<string, string>>> sps = subPaths.back(); 
-        subPaths.pop_back();
 
-        paths.insert(paths.end(), sps->begin(), sps->end());
-    }
-
+    vector<pair<string, string>> paths = sReturnData->paths;
     sort(paths.begin(), paths.end(), comparePathsFirstRawCoordinates);
     for (auto p : paths) {
         printf("%s\n", p.first.c_str()); 

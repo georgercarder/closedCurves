@@ -11,7 +11,3 @@ closed_curves_parallel: closed_curves_parallel.cpp
 
 clean:
 	rm closed_curves && rm closed_curves_parallel 
-
-
-
-#$(CC) -std=$(STD) -pthread -O3 -o closed_curves closed_curves.cpp

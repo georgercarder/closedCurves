@@ -44,6 +44,8 @@ int main(int argc, char* argv[])
 
     unordered_map<string, unordered_map<string, bool>> colorToCoords = getColorClassToCoords(keys, values);
     vector<pair<string, string>> paths;
+    paths.reserve(values.size());
+
     for (auto x : colorToCoords) { // can just be independent "thread" for each color
         string color = x.first;
         unordered_map<string, bool> coords = x.second;

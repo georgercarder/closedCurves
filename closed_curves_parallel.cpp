@@ -94,6 +94,7 @@ int main(int argc, char* argv[])
     sDataFeed->colorToCoords = colorToCoords;
 
     shared_ptr<ReturnData> sReturnData = make_shared<ReturnData>();
+    sReturnData->paths.reserve(values.size());
 
     vector<thread> threads;
 
